@@ -11,7 +11,7 @@
 
         <style>
             .custom-container {
-                max-width: 1200px; /* Set your desired container width here */
+                max-width: 1400px; /* Set your desired container width here */
                 margin-top: 30px;
             }
 
@@ -35,11 +35,25 @@
             <div class="row mt-4">
                 <div class="col">
                     <label for="textarea1">Financial Data</label>
-                    <textarea id="textarea1" readonly rows="30" class="form-control small-font"></textarea>
+                    <textarea id="textarea1" readonly rows="35" class="form-control small-font"></textarea>
                 </div>
                 <div class="col">
-                    <label for="textarea2">GPT Summary</label>
-                    <textarea id="textarea2" readonly rows="10" class="form-control"></textarea>
+                    <div>
+                        <label for="textarea2">Summary (GPT)</label>
+                        <textarea id="textarea2" readonly rows="9" class="form-control"></textarea>
+                    </div>
+                    <div id="user">
+                        <div class="mt-4">
+                            <label for="textarea3">User Question</label>
+                            <textarea id="textarea3" rows="3" class="form-control"></textarea>
+                        </div>
+                        <div class="mt-2">
+                            <button id="myButton" class="btn btn-primary btn-block">Submit</button>
+                        </div>
+                        <div class="mt-3" id="response">
+                            <textarea id="textarea4" readonly rows="10" class="form-control"></textarea>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -62,6 +76,10 @@
 
         <script>
             $(document).ready(function () {
+
+                $("#user").hide();
+                $("#response").hide();
+
                 // Fetch data for autocomplete
                 function fetchData() {
                     return $.ajax({
@@ -73,7 +91,6 @@
 
                 // Initialize autocomplete
                 fetchData().done(function (data) {
-                    console.log("DDD", data);
                     $("#search").autocomplete({
                         source: data.symbols,
                         minLength: 2,
@@ -102,9 +119,11 @@
                             // Handle the response from the server
                             $("#textarea1").text(response.financial);
                             $("#textarea2").text(response.gpt);
+                            $("#user").show();
                         },
                         error: function (jqXHR, textStatus, errorThrown) {
                             console.error("Error: " + textStatus, errorThrown);
+                            $("#user").hide();
                         },
                         complete: function () {
                             // Hide the spinner
@@ -112,6 +131,58 @@
                         }
                     });
                 }
+  
+                // Handle user selection
+                function handleUserQuestion() {
+                    const selectedSymbol = $("#search").val();
+                    const promptData = $("#textarea1").text();
+                    const userQuestion = $("#textarea3").val();
+
+                    if (selectedSymbol === "") {
+                        alert("No symbol selected!");
+                        return;
+                    }
+  
+                    if (promptData === "") {
+                        alert("No financial data!");
+                        return;
+                    }
+  
+                    if (userQuestion === "") {
+                        alert("No user question!");
+                        return;
+                    }
+  
+                    // Show the spinner
+                    $("#overlay").show();
+                
+                    // Send a request to your API with the selected item
+                    $.ajax({
+                        url: "/chat",
+                        method: "POST",
+                        data: JSON.stringify({ user_question: userQuestion, symbol: selectedSymbol, financial_data: promptData }),
+                        contentType: "application/json",
+                        dataType: "json",
+                        success: function (response) {
+                            // Handle the response from the server
+                            $("#textarea4").text(response.answer);
+                            $("#response").show();
+                        },
+                        error: function (jqXHR, textStatus, errorThrown) {
+                            console.error("Error: " + textStatus, errorThrown);
+                            $("#response").hide();
+                        },
+                        complete: function () {
+                            // Hide the spinner
+                            $("#overlay").hide();
+                        }
+                    });
+                }
+  
+                $('#myButton').click(function() {
+                    handleUserQuestion();
+                });
+
             });
 
         </script>

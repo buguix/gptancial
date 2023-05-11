@@ -33,3 +33,22 @@ def generate_completion(
     )
 
     return [choice.text.strip() for choice in response.choices]
+
+
+def generate_chat(
+    symbol: str,
+    model: str,
+    data_input: str,
+    user_question: str,
+) -> str:
+    messages = [
+        {"role": "system", "content": "You are a helpful assistant."},
+        {"role": "user", "content": f"Here's some indicators for {symbol} stock.\n\n{data_input}"},
+        {"role": "user", "content": user_question},
+    ]
+    response = openai.ChatCompletion.create(
+        model=model,
+        messages=messages,
+    )
+
+    return response["choices"][0]["message"]["content"]
