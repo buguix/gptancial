@@ -8,7 +8,7 @@ Using docker:
 
 ```bash
 cd gptancial
-docker build -t gtptancial .
+docker build -t gptancial .
 docker run --name gptancial \
     -e FMP_API_KEY=insert-fmp-api-key-here \
     -e OPEN_AI_API_KEY=insert-open-api-key-here \
